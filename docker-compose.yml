@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  builder:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: riddles-diary-builder
+    volumes:
+      - gradle-cache:/root/.gradle
+      - ./output:/output
+    # The build happens during image build. This service is for
+    # extracting the APK and re-building if needed.
+
+  shell:
+    image: riddles-diary-builder
+    entrypoint: /bin/bash
+    volumes:
+      - .:/app
+      - gradle-cache:/root/.gradle
+      - ./output:/output
+    working_dir: /app
+    stdin_open: true
+    tty: true
+    profiles:
+      - dev
+
+volumes:
+  gradle-cache:

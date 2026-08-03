@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Diary theme colors -->
+    <color name="parchment">#FFF3E0</color>
+    <color name="parchment_dark">#FFE0B2</color>
+    <color name="parchment_light">#FFF8F0</color>
+    <color name="ink_green">#1B3A2D</color>
+    <color name="ink_green_light">#2D5A3D</color>
+    <color name="ink_glow">#4A7A5D</color>
+    <color name="diary_cover">#1A0E0A</color>
+    <color name="diary_cover_light">#2D1B12</color>
+    <color name="gold_accent">#C9A96E</color>
+    <color name="text_dark">#2C1810</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+</resources>

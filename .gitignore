@@ -1,0 +1,28 @@
+# Android
+*.apk
+*.aab
+*.dex
+*.class
+*.iml
+app/build/
+build/
+.gradle/
+local.properties
+
+# IDE
+.idea/
+*.iws
+*.ipr
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Output
+output/
+
+# Secrets (API keys etc.)
+**/secrets.properties
+**/secure.properties
+app/default_api_key.properties

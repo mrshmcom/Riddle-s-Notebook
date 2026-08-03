@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Open book left page -->
+    <path
+        android:fillColor="#FFF5E6D3"
+        android:pathData="M54,34 L52,34 L35,30 L24,32 L24,76 L35,78 L52,74 L54,74 Z" />
+
+    <!-- Open book right page -->
+    <path
+        android:fillColor="#FFFFF8F0"
+        android:pathData="M54,34 L56,34 L73,30 L84,32 L84,76 L73,78 L56,74 L54,74 Z" />
+
+    <!-- Book spine line -->
+    <path
+        android:strokeColor="#FFC9A96E"
+        android:strokeWidth="0.5"
+        android:pathData="M54,32 L54,76" />
+
+    <!-- Book cover/edges -->
+    <path
+        android:fillColor="#FF1B3A2D"
+        android:pathData="M24,32 L24,76 L35,78 L35,30 Z" />
+    <path
+        android:fillColor="#FF1B3A2D"
+        android:pathData="M84,32 L84,76 L73,78 L73,30 Z" />
+
+    <!-- Book spine backing -->
+    <path
+        android:fillColor="#FF2D1B12"
+        android:pathData="M50,30 L58,30 L58,78 L50,78 Z" />
+
+    <!-- Lines on left page (text lines) -->
+    <path
+        android:strokeColor="#FFD5C5B0"
+        android:strokeWidth="0.4"
+        android:pathData="M38,42 L50,44 M38,48 L50,50 M38,54 L50,56 M38,60 L50,62" />
+
+    <!-- Lines on right page (text lines) -->
+    <path
+        android:strokeColor="#FFD5C5B0"
+        android:strokeWidth="0.4"
+        android:pathData="M58,44 L70,42 M58,50 L70,48 M58,56 L70,54 M58,62 L70,60" />
+
+    <!-- Quill feather - main shaft -->
+    <path
+        android:strokeColor="#FFC9A96E"
+        android:strokeWidth="1.2"
+        android:fillColor="#00000000"
+        android:pathData="M58,38 Q56,22 54,14 Q53,10 54,8" />
+
+    <!-- Quill feather - left barbs -->
+    <path
+        android:fillColor="#FFD4B896"
+        android:pathData="M54,10 Q58,14 56,17 L55,16 Q56,13 54,10 Z" />
+    <path
+        android:fillColor="#FFBF9B7A"
+        android:pathData="M55,16 Q60,20 57,24 L55,23 Q57,19 55,16 Z" />
+    <path
+        android:fillColor="#FFD4B896"
+        android:pathData="M56,22 Q60,26 57,30 L55,29 Q58,25 56,22 Z" />
+
+    <!-- Quill feather - right barbs -->
+    <path
+        android:fillColor="#FFD4B896"
+        android:pathData="M54,10 Q50,14 52,17 L53,16 Q52,13 54,10 Z" />
+    <path
+        android:fillColor="#FFBF9B7A"
+        android:pathData="M53,17 Q48,21 51,24 L53,23 Q50,19 53,17 Z" />
+    <path
+        android:fillColor="#FFD4B896"
+        android:pathData="M52,23 Q48,27 51,30 L53,29 Q50,25 52,23 Z" />
+
+    <!-- Quill nib -->
+    <path
+        android:fillColor="#FFC9A96E"
+        android:pathData="M54,13 L53,17 L55,17 Z" />
+
+    <!-- Ink drop falling from quill -->
+    <path
+        android:fillColor="#FF1B3A2D"
+        android:pathData="M53.5,20 m-1.2,0 a1.2,1.2 0,1 1,2.4 0 a1.2,1.2 0,1 1,-2.4 0" />
+
+    <!-- Small magical sparkle -->
+    <path
+        android:fillColor="#FFE8D5A0"
+        android:pathData="M46,36 L47,35 L47,37 Z M44,38 L43,37 L43,39 Z" />
+
+    <!-- Another sparkle -->
+    <path
+        android:fillColor="#FFE8D5A0"
+        android:pathData="M62,36 L63,35 L63,37 Z" />
+
+    <!-- Thin bookmark ribbon -->
+    <path
+        android:fillColor="#FF8B3A3A"
+        android:pathData="M52,76 L52,82 Q52,84 51,86 L53,86 Q52,84 53,82 L53,76 Z" />
+</vector>
