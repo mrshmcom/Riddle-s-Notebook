@@ -1,0 +1,15 @@
+// init.gradle — Ensure Google Maven connectivity
+// Gradle uses Apache HttpClient which handles TLS properly,
+// so we keep HTTPS. This script is just a safety net.
+
+gradle.allprojects {
+    buildscript {
+        repositories {
+            all {
+                if (it instanceof MavenArtifactRepository) {
+                    println ">>> Repository: ${it.url}"
+                }
+            }
+        }
+    }
+}

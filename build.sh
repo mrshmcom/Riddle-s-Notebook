@@ -34,8 +34,11 @@ cmd_build() {
     log "Starting Riddle's Diary build in Docker..."
     mkdir -p "$OUTPUT_DIR"
 
-    # Build the Docker image (this runs the full Android build)
+    # Build the Docker image
+    # --network host improves network performance
+    # DNS for Google domains is fixed inside the Dockerfile
     docker build \
+        --network host \
         --build-arg BUILDKIT_INLINE_CACHE=1 \
         -t riddles-diary-builder \
         -f Dockerfile \

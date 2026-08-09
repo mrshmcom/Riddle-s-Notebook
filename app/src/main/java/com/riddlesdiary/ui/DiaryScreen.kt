@@ -7,7 +7,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.tween
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -31,9 +31,9 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.OpenInNew
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -47,7 +47,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.menuAnchor
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -174,7 +173,7 @@ fun DiaryScreen(
                         }
 
                         // AI Response
-                        AnimatedVisibility(
+                        androidx.compose.animation.AnimatedVisibility(
                             visible = uiState.displayedResponse.isNotEmpty(),
                             enter = fadeIn(tween(300)),
                             exit = fadeOut(tween(200)),
@@ -193,7 +192,7 @@ fun DiaryScreen(
                         }
 
                         // Thinking
-                        AnimatedVisibility(
+                        androidx.compose.animation.AnimatedVisibility(
                             visible = uiState.status is DiaryStatus.Thinking,
                             enter = fadeIn(tween(500)),
                             exit = fadeOut(tween(300)),
@@ -205,6 +204,54 @@ fun DiaryScreen(
                                     Spacer(modifier = Modifier.height(12.dp))
                                     Text("The diary is thinking…", fontFamily = FontFamily.Serif, fontSize = 14.sp, color = TextMuted)
                                     Text("via ${uiState.selectedProvider.displayName}", fontFamily = FontFamily.Serif, fontSize = 11.sp, color = TextMuted.copy(alpha = 0.5f))
+                                }
+                            }
+                        }
+
+                        // Text input fallback (when handwriting recognition is unavailable)
+                        if (uiState.recognitionUnavailable && uiState.status is DiaryStatus.Idle && uiState.displayedResponse.isEmpty()) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                OutlinedTextField(
+                                    value = uiState.typedText,
+                                    onValueChange = { viewModel.onTypedTextChanged(it) },
+                                    placeholder = {
+                                        Text(
+                                            "Type your message to the diary…",
+                                            fontFamily = FontFamily.Serif,
+                                            fontSize = 14.sp,
+                                            color = TextMuted.copy(alpha = 0.5f)
+                                        )
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                    singleLine = true,
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedTextColor = InkGreen,
+                                        unfocusedTextColor = InkGreen,
+                                        focusedBorderColor = GoldAccent,
+                                        unfocusedBorderColor = GoldDim.copy(alpha = 0.3f),
+                                        cursorColor = InkGreen,
+                                        focusedContainerColor = ParchmentDark.copy(alpha = 0.2f),
+                                        unfocusedContainerColor = Color.Transparent
+                                    ),
+                                    textStyle = MaterialTheme.typography.bodyMedium.copy(
+                                        fontFamily = FontFamily.Cursive,
+                                        fontSize = 16.sp
+                                    )
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                IconButton(
+                                    onClick = { viewModel.submitTypedText(uiState.typedText) },
+                                    enabled = uiState.typedText.isNotBlank()
+                                ) {
+                                    Icon(
+                                        Icons.Default.Send,
+                                        contentDescription = "Send",
+                                        tint = if (uiState.typedText.isNotBlank()) GoldAccent else GoldDim.copy(alpha = 0.3f),
+                                        modifier = Modifier.size(24.dp)
+                                    )
                                 }
                             }
                         }
@@ -535,7 +582,7 @@ private fun SettingsDialog(
                             readOnly = true,
                             label = { Text("Model", fontFamily = FontFamily.Serif, fontSize = 12.sp) },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = modelDropdownExpanded) },
-                            modifier = Modifier.fillMaxWidth().menuAnchor(),
+                            modifier = Modifier.fillMaxWidth(),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedTextColor = TextDark, unfocusedTextColor = TextDark,
                                 focusedBorderColor = GoldAccent, unfocusedBorderColor = GoldDim.copy(alpha = 0.5f),

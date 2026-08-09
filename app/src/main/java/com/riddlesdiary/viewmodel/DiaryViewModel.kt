@@ -38,7 +38,11 @@ data class DiaryUiState(
     val selectedModelId: String = AIProvider.GROQ.defaultModel,
     val apiKey: String = "",
 
-    val conversationHistory: List<Pair<String, String>> = emptyList()
+    val conversationHistory: List<Pair<String, String>> = emptyList(),
+
+    // Fallback: true if ML Kit handwriting recognition is permanently unavailable
+    val recognitionUnavailable: Boolean = false,
+    val typedText: String = ""
 )
 
 /**
@@ -63,7 +67,7 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(DiaryUiState())
     val uiState: StateFlow<DiaryUiState> = _uiState.asStateFlow()
 
-    private val recognizer = HandwritingRecognizer(application)
+    private val recognizer = HandwritingRecognizer()
     private val diaryAI = DiaryAI()
 
     private val strokes = mutableListOf<StrokeData>()
@@ -135,6 +139,7 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
 
     /**
      * Downloads the handwriting recognition model.
+     * If it fails permanently, enables text input fallback mode.
      */
     private fun downloadModel() {
         viewModelScope.launch {
@@ -142,12 +147,82 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
             _uiState.update { state ->
                 state.copy(
                     isModelReady = result.isSuccess,
+                    recognitionUnavailable = !result.isSuccess,
                     errorMessage = if (result.isFailure) {
                         result.exceptionOrNull()?.message
                     } else null
                 )
             }
         }
+    }
+
+    /**
+     * Submits typed text directly to the AI (fallback when handwriting recognition
+     * is not available on this device). Bypasses the entire recognition flow.
+     */
+    fun submitTypedText(text: String) {
+        val trimmed = text.trim()
+        if (trimmed.isEmpty()) return
+
+        val state = _uiState.value
+        val provider = state.selectedProvider
+        val modelId = state.selectedModelId
+        val apiKey = state.apiKey
+
+        if (provider.requiresApiKey && apiKey.isBlank()) {
+            _uiState.update {
+                it.copy(
+                    status = DiaryStatus.Error("Please set your ${provider.displayName} API key in Settings."),
+                    errorMessage = "Please set your ${provider.displayName} API key in Settings.",
+                    typedText = ""
+                )
+            }
+            return
+        }
+
+        _uiState.update { it.copy(status = DiaryStatus.Thinking, typedText = "") }
+
+        viewModelScope.launch {
+            val aiResult = diaryAI.getResponse(
+                provider = provider,
+                modelId = modelId,
+                apiKey = apiKey,
+                userMessage = trimmed,
+                conversationHistory = state.conversationHistory
+            )
+
+            if (aiResult.isFailure) {
+                val error = aiResult.exceptionOrNull()
+                val message = when (error) {
+                    is AIException -> error.message ?: "The diary cannot respond right now."
+                    else -> "An unexpected magical disturbance occurred."
+                }
+                _uiState.update {
+                    it.copy(status = DiaryStatus.Error(message), errorMessage = message)
+                }
+                return@launch
+            }
+
+            val response = aiResult.getOrThrow()
+            val newHistory = state.conversationHistory.toMutableList()
+            newHistory.add("user" to trimmed)
+            newHistory.add("assistant" to response)
+            val trimmedHistory = if (newHistory.size > 20) newHistory.takeLast(20) else newHistory
+
+            _uiState.update { it.copy(conversationHistory = trimmedHistory, aiResponse = response) }
+            _uiState.update { it.copy(status = DiaryStatus.Responding) }
+            animateTypewriter(response)
+            _uiState.update {
+                it.copy(status = DiaryStatus.Idle, canvasClearToken = it.canvasClearToken + 1)
+            }
+        }
+    }
+
+    /**
+     * Updates the typed text field value.
+     */
+    fun onTypedTextChanged(text: String) {
+        _uiState.update { it.copy(typedText = text) }
     }
 
     // ── Drawing Callbacks ────────────────────────────────────────
@@ -301,11 +376,9 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
         if (strokesToRecognize.isEmpty()) {
             return Result.failure(Exception("No strokes to recognize"))
         }
-        if (!recognizer.isReady()) {
-            val modelResult = recognizer.ensureModelReady()
-            if (modelResult.isFailure) {
-                return Result.failure(modelResult.exceptionOrNull() ?: Exception("Model download failed"))
-            }
+        val modelResult = recognizer.ensureModelReady()
+        if (modelResult.isFailure) {
+            return Result.failure(modelResult.exceptionOrNull() ?: Exception("Model download failed"))
         }
         return recognizer.recognize(strokesToRecognize)
     }

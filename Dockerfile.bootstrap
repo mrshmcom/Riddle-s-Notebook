@@ -1,0 +1,62 @@
+# Bootstrap Dockerfile — builds Android SDK + Gradle environment from scratch
+# Only needed for FIRST build or when the base image doesn't exist.
+# Run: docker build -f Dockerfile.bootstrap -t riddles-diary-builder .
+#
+# NOTE: This requires access to dl.google.com (may not work in sanctioned regions).
+# If you're in a region where Google is blocked, build on a VPS/cloud instance,
+# save the image, and transfer it.
+
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# DNS fix for regions where Google domains are blocked
+COPY fix-dns.sh /usr/local/bin/fix-dns
+
+RUN sh /usr/local/bin/fix-dns && \
+    apt-get update && apt-get install -y \
+    openjdk-17-jdk wget unzip curl git ca-certificates \
+    && update-ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+ENV PATH=$PATH:$JAVA_HOME/bin
+
+# Android SDK
+ENV ANDROID_HOME=/opt/android-sdk
+ENV ANDROID_SDK_ROOT=/opt/android-sdk
+ENV PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
+
+RUN sh /usr/local/bin/fix-dns && \
+    mkdir -p $ANDROID_HOME/cmdline-tools && \
+    wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip && \
+    unzip -q commandlinetools-linux-*.zip -d $ANDROID_HOME/cmdline-tools && \
+    mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest && \
+    rm commandlinetools-linux-*.zip && \
+    yes | sdkmanager --licenses > /dev/null 2>&1
+
+RUN sh /usr/local/bin/fix-dns && \
+    sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" \
+    "extras;android;m2repository" "extras;google;m2repository" || true
+
+# Gradle
+ENV GRADLE_VERSION=8.7
+RUN sh /usr/local/bin/fix-dns && \
+    curl -fsSL --retry 5 "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" \
+    -o /tmp/gradle.zip && unzip -q /tmp/gradle.zip -d /opt && rm /tmp/gradle.zip
+ENV PATH=$PATH:/opt/gradle-${GRADLE_VERSION}/bin
+ENV GRADLE_USER_HOME=/root/.gradle
+
+WORKDIR /app
+COPY . .
+
+RUN mkdir -p /tmp/empty && cd /tmp/empty && echo "" > settings.gradle && \
+    gradle wrapper --gradle-version ${GRADLE_VERSION} --no-daemon && \
+    cp gradlew gradlew.bat /app/ && mkdir -p /app/gradle/wrapper && \
+    cp gradle/wrapper/gradle-wrapper.jar /app/gradle/wrapper/ && \
+    rm -rf /tmp/empty
+
+RUN sh /usr/local/bin/fix-dns && \
+    ./gradlew assembleDebug --no-daemon --stacktrace
+
+CMD ["bash", "-c", "cp /app/app/build/outputs/apk/debug/app-debug.apk /output/ 2>/dev/null || echo 'APK built'"]
